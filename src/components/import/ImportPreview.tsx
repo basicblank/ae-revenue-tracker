@@ -48,13 +48,13 @@ function ColumnMapPanel({ headers, map }: { headers: string[]; map: ColumnMap })
     { label: 'Notes', value: map.notes },
   ];
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
       <h3 className="text-sm font-semibold mb-2">Column mapping (auto-detected)</h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
         {items.map((it) => (
           <div key={it.label}>
             <span className="text-gray-500">{it.label}: </span>
-            <span className={it.value ? 'font-mono text-gray-900' : 'text-red-600 italic'}>
+            <span className={it.value ? 'font-mono' : 'text-red-600 dark:text-red-400 italic'}>
               {it.value ?? 'not found'}
             </span>
           </div>
@@ -98,9 +98,9 @@ function Stat({
   tone: 'green' | 'red' | 'gray';
 }) {
   const colors = {
-    green: 'bg-green-50 border-green-200 text-green-700',
-    red: 'bg-red-50 border-red-200 text-red-700',
-    gray: 'bg-gray-50 border-gray-200 text-gray-700',
+    green: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400',
+    red: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400',
+    gray: 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300',
   }[tone];
   return (
     <div className={`border rounded-lg p-3 ${colors}`}>
@@ -112,25 +112,25 @@ function Stat({
 
 function ErrorsTable({ errors, totalErrors }: { errors: RowError[]; totalErrors: number }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-4 py-2 border-b border-gray-200 text-sm font-semibold text-red-700">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-sm font-semibold text-red-700 dark:text-red-400">
         Skipped rows ({totalErrors})
         {totalErrors > errors.length && (
           <span className="text-gray-500 font-normal"> — showing first {errors.length}</span>
         )}
       </div>
       <table className="min-w-full text-sm">
-        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+        <thead className="bg-gray-50 dark:bg-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400">
           <tr>
             <th className="text-left px-3 py-2 font-medium">Row</th>
             <th className="text-left px-3 py-2 font-medium">Reason</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {errors.map((e) => (
             <tr key={e.rowIndex}>
               <td className="px-3 py-1.5 text-gray-500">{e.rowIndex}</td>
-              <td className="px-3 py-1.5 text-red-700">{e.reason}</td>
+              <td className="px-3 py-1.5 text-red-700 dark:text-red-400">{e.reason}</td>
             </tr>
           ))}
         </tbody>
@@ -149,8 +149,8 @@ function RowsTable({
   totalRows: number;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-4 py-2 border-b border-gray-200 text-sm font-semibold">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-sm font-semibold">
         Preview ({totalRows} valid rows)
         {totalRows > rows.length && (
           <span className="text-gray-500 font-normal"> — showing first {rows.length}</span>
@@ -158,7 +158,7 @@ function RowsTable({
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="bg-gray-50 dark:bg-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400">
             <tr>
               <th className="text-left px-3 py-2 font-medium">Row</th>
               <th className="text-left px-3 py-2 font-medium">Email</th>
@@ -170,11 +170,14 @@ function RowsTable({
               <th className="text-left px-3 py-2 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {rows.map((r) => {
               const isDup = duplicateKeys.has(dedupKey(r.email, r.transaction_date, r.paid_amount));
               return (
-                <tr key={r.rowIndex} className={isDup ? 'bg-gray-50 text-gray-500' : ''}>
+                <tr
+                  key={r.rowIndex}
+                  className={isDup ? 'bg-gray-50 dark:bg-gray-800 text-gray-500' : ''}
+                >
                   <td className="px-3 py-1.5 text-gray-500">{r.rowIndex}</td>
                   <td className="px-3 py-1.5">{r.email}</td>
                   <td className="px-3 py-1.5 capitalize">{r.category}</td>
@@ -191,7 +194,7 @@ function RowsTable({
                     {isDup ? (
                       <span className="text-xs text-gray-500">Skip (duplicate)</span>
                     ) : (
-                      <span className="text-xs text-green-700">Will import</span>
+                      <span className="text-xs text-green-700 dark:text-green-400">Will import</span>
                     )}
                   </td>
                 </tr>

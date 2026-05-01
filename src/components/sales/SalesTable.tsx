@@ -8,6 +8,9 @@ import { PLAN_LABEL } from '@/types/domain';
 
 type StatusFilter = 'all' | 'active' | 'expired';
 
+const inputClass =
+  'border border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-gray-500 dark:focus:border-gray-400';
+
 export function SalesTable() {
   const { data: sales = [], isLoading, error } = useSales();
   const deleteMut = useDeleteSale();
@@ -31,7 +34,8 @@ export function SalesTable() {
   }, [sales, search, category, plan, status]);
 
   if (isLoading) return <div className="text-sm text-gray-500">Loading sales...</div>;
-  if (error) return <div className="text-sm text-red-600">Error: {(error as Error).message}</div>;
+  if (error)
+    return <div className="text-sm text-red-600 dark:text-red-400">Error: {(error as Error).message}</div>;
 
   return (
     <div className="space-y-3">
@@ -40,12 +44,12 @@ export function SalesTable() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search email..."
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-gray-500"
+          className={inputClass}
         />
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as 'all' | SaleCategory)}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm"
+          className={inputClass}
         >
           <option value="all">All categories</option>
           <option value="stripe">Stripe</option>
@@ -54,7 +58,7 @@ export function SalesTable() {
         <select
           value={plan}
           onChange={(e) => setPlan(e.target.value as 'all' | SalePlan)}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm"
+          className={inputClass}
         >
           <option value="all">All plans</option>
           <option value="1m">1 month</option>
@@ -63,7 +67,7 @@ export function SalesTable() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as StatusFilter)}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm"
+          className={inputClass}
         >
           <option value="all">All statuses</option>
           <option value="active">Active</option>
@@ -73,9 +77,9 @@ export function SalesTable() {
           {filtered.length} of {sales.length}
         </span>
       </div>
-      <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg">
+      <div className="overflow-x-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="bg-gray-50 dark:bg-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400">
             <tr>
               <th className="text-left px-3 py-2 font-medium">Email</th>
               <th className="text-left px-3 py-2 font-medium">Category</th>
@@ -90,7 +94,7 @@ export function SalesTable() {
               {isOwner && <th className="px-3 py-2"></th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={isOwner ? 11 : 10} className="text-center py-6 text-gray-500">
@@ -99,7 +103,7 @@ export function SalesTable() {
               </tr>
             ) : (
               filtered.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50">
+                <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <td className="px-3 py-2">{s.email}</td>
                   <td className="px-3 py-2 capitalize">{s.category}</td>
                   <td className="px-3 py-2">{PLAN_LABEL[s.plan]}</td>
@@ -110,13 +114,15 @@ export function SalesTable() {
                   <td className="px-3 py-2">{formatDate(s.expiration_date)}</td>
                   <td className="px-3 py-2">
                     {s.is_active ? (
-                      <span className="text-green-700">Active ({s.days_until_expiry}d)</span>
+                      <span className="text-green-700 dark:text-green-400">
+                        Active ({s.days_until_expiry}d)
+                      </span>
                     ) : (
-                      <span className="text-gray-400">Expired</span>
+                      <span className="text-gray-400 dark:text-gray-500">Expired</span>
                     )}
                   </td>
                   <td
-                    className="px-3 py-2 text-gray-600 max-w-[200px] truncate"
+                    className="px-3 py-2 text-gray-600 dark:text-gray-400 max-w-[200px] truncate"
                     title={s.notes ?? ''}
                   >
                     {s.notes}
@@ -127,7 +133,7 @@ export function SalesTable() {
                         onClick={() => {
                           if (confirm(`Delete sale for ${s.email}?`)) deleteMut.mutate(s.id);
                         }}
-                        className="text-xs text-red-600 hover:text-red-800"
+                        className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                       >
                         Delete
                       </button>

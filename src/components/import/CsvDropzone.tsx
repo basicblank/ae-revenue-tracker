@@ -57,10 +57,12 @@ export function CsvDropzone({ onParsed }: Props) {
         }}
         onClick={() => inputRef.current?.click()}
         className={`border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition ${
-          dragOver ? 'border-gray-900 bg-gray-50' : 'border-gray-300 hover:border-gray-400 bg-white'
+          dragOver
+            ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800'
+            : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-gray-900'
         }`}
       >
-        <p className="text-sm text-gray-700">Drop a CSV here, or click to choose</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">Drop a CSV here, or click to choose</p>
         <p className="text-xs text-gray-500 mt-1">Dates must be MM/DD/YYYY</p>
         <input
           ref={inputRef}
@@ -74,7 +76,7 @@ export function CsvDropzone({ onParsed }: Props) {
           }}
         />
       </div>
-      {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>}
     </div>
   );
 }

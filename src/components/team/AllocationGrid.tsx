@@ -8,6 +8,9 @@ import { useAllocations, useUpsertAllocation } from '@/data/allocations';
 
 const MAX_SLOTS = 11;
 
+const inputClass =
+  'border border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded px-2 py-1 text-right text-sm focus:outline-none focus:border-gray-500 dark:focus:border-gray-400';
+
 export function AllocationGrid() {
   const now = new Date();
   const year = now.getFullYear();
@@ -93,7 +96,11 @@ export function AllocationGrid() {
   };
 
   const onRemove = async (memberId: string, name: string) => {
-    if (!confirm(`Remove ${name} from active roster? Their past allocations stay frozen; current month allocation will be set to 0.`)) {
+    if (
+      !confirm(
+        `Remove ${name} from active roster? Their past allocations stay frozen; current month allocation will be set to 0.`,
+      )
+    ) {
       return;
     }
     try {
@@ -115,8 +122,8 @@ export function AllocationGrid() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
           <h3 className="text-sm font-semibold">
             Current month — {String(month).padStart(2, '0')}/{year}
           </h3>
@@ -125,14 +132,14 @@ export function AllocationGrid() {
           </span>
         </div>
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="bg-gray-50 dark:bg-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400">
             <tr>
               <th className="text-left px-3 py-2 font-medium">Name</th>
               <th className="text-right px-3 py-2 font-medium">% allocation</th>
               <th className="px-3 py-2"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {activeMembers.length === 0 ? (
               <tr>
                 <td colSpan={3} className="text-center py-6 text-gray-500">
@@ -143,7 +150,7 @@ export function AllocationGrid() {
               activeMembers.map((m) => {
                 const isEdited = edits[m.id] !== undefined;
                 return (
-                  <tr key={m.id} className={isEdited ? 'bg-amber-50' : ''}>
+                  <tr key={m.id} className={isEdited ? 'bg-amber-50 dark:bg-amber-900/20' : ''}>
                     <td className="px-3 py-2">{m.name}</td>
                     <td className="px-3 py-2 text-right">
                       <input
@@ -153,14 +160,14 @@ export function AllocationGrid() {
                         max="100"
                         value={workingValues[m.id]}
                         onChange={(e) => onChange(m.id, e.target.value)}
-                        className="w-20 border border-gray-300 rounded px-2 py-1 text-right text-sm focus:outline-none focus:border-gray-500"
+                        className={`${inputClass} w-20`}
                       />
                       <span className="ml-1 text-gray-500">%</span>
                     </td>
                     <td className="px-3 py-2 text-right">
                       <button
                         onClick={() => onRemove(m.id, m.name)}
-                        className="text-xs text-red-600 hover:text-red-800"
+                        className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                       >
                         Remove
                       </button>
@@ -170,12 +177,12 @@ export function AllocationGrid() {
               })
             )}
           </tbody>
-          <tfoot className="bg-gray-50 text-sm">
+          <tfoot className="bg-gray-50 dark:bg-gray-800 text-sm">
             <tr>
               <td className="px-3 py-2 font-semibold">Allocated total</td>
               <td
                 className={`px-3 py-2 text-right font-semibold ${
-                  overflow ? 'text-red-600' : 'text-gray-900'
+                  overflow ? 'text-red-600 dark:text-red-400' : ''
                 }`}
               >
                 {sum.toFixed(2)}%
@@ -186,7 +193,7 @@ export function AllocationGrid() {
               <td className="px-3 py-2 font-semibold">Operational costs</td>
               <td
                 className={`px-3 py-2 text-right font-semibold ${
-                  overflow ? 'text-red-600' : 'text-gray-700'
+                  overflow ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
                 {opsCost.toFixed(2)}%
@@ -201,7 +208,7 @@ export function AllocationGrid() {
         {!adding && activeMembers.length < MAX_SLOTS && (
           <button
             onClick={() => setAdding(true)}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm hover:bg-gray-50"
+            className="border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             + Add member
           </button>
@@ -220,12 +227,12 @@ export function AllocationGrid() {
                 }
               }}
               placeholder="Member name"
-              className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-gray-500"
+              className={`${inputClass} text-left`}
             />
             <button
               onClick={onAdd}
               disabled={!newName.trim() || create.isPending}
-              className="bg-gray-900 text-white rounded px-3 py-1.5 text-sm hover:bg-black disabled:opacity-50"
+              className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded px-3 py-1.5 text-sm hover:bg-black dark:hover:bg-white disabled:opacity-50"
             >
               Add
             </button>
@@ -242,12 +249,14 @@ export function AllocationGrid() {
         )}
         <div className="ml-auto flex items-center gap-3">
           {overflow && (
-            <span className="text-xs text-red-600">Total exceeds 100% — fix before saving.</span>
+            <span className="text-xs text-red-600 dark:text-red-400">
+              Total exceeds 100% — fix before saving.
+            </span>
           )}
           <button
             onClick={onSave}
             disabled={!hasChanges || overflow || saving}
-            className="bg-gray-900 text-white rounded px-4 py-1.5 text-sm hover:bg-black disabled:opacity-50"
+            className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded px-4 py-1.5 text-sm hover:bg-black dark:hover:bg-white disabled:opacity-50"
           >
             {saving
               ? 'Saving...'
@@ -257,7 +266,7 @@ export function AllocationGrid() {
       </div>
 
       {saveError && (
-        <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-700">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3 text-sm text-red-700 dark:text-red-400">
           {saveError}
         </div>
       )}

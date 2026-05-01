@@ -93,6 +93,25 @@ create table if not exists public.monthly_allocations (
 create index if not exists ma_year_month_idx on public.monthly_allocations (year, month);
 
 ------------------------------------------------------------
+-- 6b. Member payouts (records of money actually paid to teammates)
+------------------------------------------------------------
+create table if not exists public.member_payouts (
+  id         uuid primary key default uuid_generate_v4(),
+  member_id  uuid not null references public.team_members(id) on delete restrict,
+  year       int not null check (year between 2020 and 2100),
+  month      int not null check (month between 1 and 12),
+  paid_at    date not null,
+  amount     numeric(10,2) not null check (amount > 0),
+  notes      text,
+  created_at timestamptz not null default now(),
+  created_by uuid references auth.users(id)
+);
+
+create index if not exists mp_member_idx     on public.member_payouts (member_id);
+create index if not exists mp_year_month_idx on public.member_payouts (year, month);
+create index if not exists mp_paid_at_idx    on public.member_payouts (paid_at desc);
+
+------------------------------------------------------------
 -- 7. Triggers (frozen-row guard, sum<=100 guard)
 ------------------------------------------------------------
 create or replace function public.tg_block_frozen_allocations() returns trigger
@@ -264,6 +283,7 @@ end $$;
 alter table public.sales               enable row level security;
 alter table public.team_members        enable row level security;
 alter table public.monthly_allocations enable row level security;
+alter table public.member_payouts      enable row level security;
 alter table public.allowed_users       enable row level security;
 alter table public.config              enable row level security;
 
@@ -288,22 +308,26 @@ $$;
 drop policy if exists sales_select on public.sales;
 drop policy if exists tm_select    on public.team_members;
 drop policy if exists ma_select    on public.monthly_allocations;
+drop policy if exists mp_select    on public.member_payouts;
 drop policy if exists au_select    on public.allowed_users;
 drop policy if exists cfg_select   on public.config;
 drop policy if exists sales_write  on public.sales;
 drop policy if exists tm_write     on public.team_members;
 drop policy if exists ma_write     on public.monthly_allocations;
+drop policy if exists mp_write     on public.member_payouts;
 drop policy if exists au_write     on public.allowed_users;
 drop policy if exists cfg_write    on public.config;
 
 create policy sales_select on public.sales              for select using (public.is_allowlisted());
 create policy tm_select    on public.team_members       for select using (public.is_allowlisted());
 create policy ma_select    on public.monthly_allocations for select using (public.is_allowlisted());
+create policy mp_select    on public.member_payouts     for select using (public.is_allowlisted());
 create policy au_select    on public.allowed_users      for select using (public.is_allowlisted());
 create policy cfg_select   on public.config             for select using (public.is_allowlisted());
 
 create policy sales_write on public.sales              for all using (public.is_owner()) with check (public.is_owner());
 create policy tm_write    on public.team_members       for all using (public.is_owner()) with check (public.is_owner());
 create policy ma_write    on public.monthly_allocations for all using (public.is_owner()) with check (public.is_owner());
+create policy mp_write    on public.member_payouts     for all using (public.is_owner()) with check (public.is_owner());
 create policy au_write    on public.allowed_users      for all using (public.is_owner()) with check (public.is_owner());
 create policy cfg_write   on public.config             for all using (public.is_owner()) with check (public.is_owner());

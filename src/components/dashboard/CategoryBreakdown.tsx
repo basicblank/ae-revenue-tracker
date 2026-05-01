@@ -25,7 +25,7 @@ export function CategoryBreakdown() {
   const nowpPct = total > 0 ? (current.nowpayments / total) * 100 : 0;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
       <h3 className="text-sm font-semibold mb-3">Current month — net by category</h3>
       <div className="space-y-3">
         <Row
@@ -43,7 +43,7 @@ export function CategoryBreakdown() {
           color="bg-green-500"
         />
         {total > 0 ? (
-          <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100 dark:border-gray-800">
             <span className="font-semibold">Total</span>
             <span className="font-semibold">{formatUSD(total)}</span>
           </div>
@@ -71,15 +71,15 @@ function Row({
   return (
     <div>
       <div className="flex items-center justify-between text-sm mb-1">
-        <span className="text-gray-700">{label}</span>
+        <span className="text-gray-700 dark:text-gray-300">{label}</span>
         <span className="font-mono">
           {formatUSD(amount)}{' '}
-          <span className="text-gray-400 text-xs">
+          <span className="text-gray-400 dark:text-gray-500 text-xs">
             ({count} {count === 1 ? 'sale' : 'sales'})
           </span>
         </span>
       </div>
-      <div className="bg-gray-100 h-2 rounded overflow-hidden">
+      <div className="bg-gray-100 dark:bg-gray-800 h-2 rounded overflow-hidden">
         <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>

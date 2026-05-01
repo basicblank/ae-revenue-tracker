@@ -12,33 +12,36 @@ import { TeamAllocationPage } from './pages/TeamAllocationPage';
 import { PayoutsPage } from './pages/PayoutsPage';
 import { ImportPage } from './pages/ImportPage';
 import { queryClient } from './lib/queryClient';
+import { ThemeProvider } from './lib/theme';
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <HashRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route
-              element={
-                <RequireAuth>
-                  <AppShell />
-                </RequireAuth>
-              }
-            >
-              <Route index element={<DashboardPage />} />
-              <Route path="/sales" element={<SalesPage />} />
-              <Route path="/active" element={<ActiveSubsPage />} />
-              <Route path="/team" element={<TeamAllocationPage />} />
-              <Route path="/payouts" element={<PayoutsPage />} />
-              <Route path="/import" element={<ImportPage />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </HashRouter>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <HashRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route
+                element={
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
+                }
+              >
+                <Route index element={<DashboardPage />} />
+                <Route path="/sales" element={<SalesPage />} />
+                <Route path="/active" element={<ActiveSubsPage />} />
+                <Route path="/team" element={<TeamAllocationPage />} />
+                <Route path="/payouts" element={<PayoutsPage />} />
+                <Route path="/import" element={<ImportPage />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </HashRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

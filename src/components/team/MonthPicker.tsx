@@ -16,7 +16,7 @@ export function MonthPicker({ year, month, onChange }: Props) {
         const [y, m] = v.split('-').map(Number);
         if (y && m) onChange(y, m);
       }}
-      className="border border-gray-300 rounded px-2 py-1.5 text-sm"
+      className="border border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded px-2 py-1.5 text-sm"
     />
   );
 }

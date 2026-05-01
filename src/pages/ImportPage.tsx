@@ -108,12 +108,15 @@ export function ImportPage() {
               Loaded <strong>{file.name}</strong> ({rawRows.length} row
               {rawRows.length === 1 ? '' : 's'})
             </div>
-            <button onClick={reset} className="text-xs text-gray-600 hover:text-gray-900 underline">
+            <button
+              onClick={reset}
+              className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline"
+            >
               Choose a different file
             </button>
           </div>
           {!mapValid.ok && (
-            <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-700">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3 text-sm text-red-700 dark:text-red-400">
               <div className="font-semibold mb-1">
                 Could not auto-detect required column(s): {mapValid.missing.join(', ')}.
               </div>
@@ -145,36 +148,46 @@ export function ImportPage() {
 
 function ReportPanel({ report, onReset }: { report: ImportReport; onReset: () => void }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 space-y-3">
       <h3 className="text-sm font-semibold">Import complete</h3>
       <div className="grid grid-cols-3 gap-3 text-sm">
-        <div className="bg-green-50 border border-green-200 rounded p-3">
-          <div className="text-2xl font-bold text-green-700">{report.inserted}</div>
-          <div className="text-xs text-green-700">Inserted</div>
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+          <div className="text-2xl font-bold text-green-700 dark:text-green-400">{report.inserted}</div>
+          <div className="text-xs text-green-700 dark:text-green-400">Inserted</div>
         </div>
-        <div className="bg-gray-50 border border-gray-200 rounded p-3">
-          <div className="text-2xl font-bold text-gray-700">{report.skipped}</div>
-          <div className="text-xs text-gray-700">Skipped</div>
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-3">
+          <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">{report.skipped}</div>
+          <div className="text-xs text-gray-700 dark:text-gray-300">Skipped</div>
         </div>
         <div
           className={`border rounded p-3 ${
-            report.failed > 0 ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'
+            report.failed > 0
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
           }`}
         >
           <div
             className={`text-2xl font-bold ${
-              report.failed > 0 ? 'text-red-700' : 'text-gray-700'
+              report.failed > 0
+                ? 'text-red-700 dark:text-red-400'
+                : 'text-gray-700 dark:text-gray-300'
             }`}
           >
             {report.failed}
           </div>
-          <div className={`text-xs ${report.failed > 0 ? 'text-red-700' : 'text-gray-700'}`}>
+          <div
+            className={`text-xs ${
+              report.failed > 0
+                ? 'text-red-700 dark:text-red-400'
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
             Failed
           </div>
         </div>
       </div>
       {report.errors.length > 0 && (
-        <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">
+        <div className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2">
           <div className="font-semibold mb-1">Errors:</div>
           <ul className="list-disc list-inside space-y-0.5">
             {report.errors.map((e, i) => (
@@ -185,7 +198,7 @@ function ReportPanel({ report, onReset }: { report: ImportReport; onReset: () =>
       )}
       <button
         onClick={onReset}
-        className="bg-gray-900 text-white rounded px-3 py-1.5 text-sm hover:bg-black"
+        className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded px-3 py-1.5 text-sm hover:bg-black dark:hover:bg-white"
       >
         Import another file
       </button>

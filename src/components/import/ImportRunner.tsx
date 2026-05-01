@@ -73,7 +73,7 @@ export function ImportRunner({ rows, duplicateKeys, onDone }: Props) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 space-y-3">
       <div className="text-sm">
         Ready to import <strong>{toInsert.length}</strong> new row
         {toInsert.length === 1 ? '' : 's'}.
@@ -86,9 +86,9 @@ export function ImportRunner({ rows, duplicateKeys, onDone }: Props) {
       </div>
       {running && (
         <div>
-          <div className="bg-gray-200 rounded h-2 overflow-hidden">
+          <div className="bg-gray-200 dark:bg-gray-800 rounded h-2 overflow-hidden">
             <div
-              className="bg-gray-900 h-full transition-all"
+              className="bg-gray-900 dark:bg-gray-100 h-full transition-all"
               style={{
                 width: toInsert.length === 0 ? '0%' : `${(progress / toInsert.length) * 100}%`,
               }}
@@ -102,7 +102,7 @@ export function ImportRunner({ rows, duplicateKeys, onDone }: Props) {
       <button
         onClick={run}
         disabled={running || toInsert.length === 0}
-        className="bg-gray-900 text-white rounded px-4 py-1.5 text-sm hover:bg-black disabled:opacity-50"
+        className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded px-4 py-1.5 text-sm hover:bg-black dark:hover:bg-white disabled:opacity-50"
       >
         {running ? 'Importing...' : `Import ${toInsert.length} row${toInsert.length === 1 ? '' : 's'}`}
       </button>
