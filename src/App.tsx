@@ -11,6 +11,7 @@ import { ActiveSubsPage } from './pages/ActiveSubsPage';
 import { TeamAllocationPage } from './pages/TeamAllocationPage';
 import { PayoutsPage } from './pages/PayoutsPage';
 import { ImportPage } from './pages/ImportPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { queryClient } from './lib/queryClient';
 import { ThemeProvider } from './lib/theme';
 
@@ -35,6 +36,7 @@ export function App() {
                 <Route path="/active" element={<ActiveSubsPage />} />
                 <Route path="/team" element={<TeamAllocationPage />} />
                 <Route path="/payouts" element={<PayoutsPage />} />
+                <Route path="/history" element={<HistoryPage />} />
                 <Route path="/import" element={<ImportPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

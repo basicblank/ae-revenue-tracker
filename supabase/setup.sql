@@ -43,21 +43,25 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 create table if not exists public.sales (
-  id               uuid primary key default uuid_generate_v4(),
-  email            citext not null,
-  category         public.sale_category not null,
-  plan             public.sale_plan not null,
-  paid_amount      numeric(10,2) not null check (paid_amount >= 0),
-  transaction_date date not null,
-  expiration_date  date generated always as (
+  id                     uuid primary key default uuid_generate_v4(),
+  email                  citext not null,
+  category               public.sale_category not null,
+  plan                   public.sale_plan not null,
+  paid_amount            numeric(10,2) not null check (paid_amount >= 0),
+  transaction_date       date not null,
+  expiration_date        date generated always as (
     case plan
       when '1m'::public.sale_plan then transaction_date + interval '1 month'
       when '3m'::public.sale_plan then transaction_date + interval '3 months'
     end
   ) stored,
-  notes            text,
-  created_at       timestamptz not null default now(),
-  created_by       uuid references auth.users(id)
+  notes                  text,
+  source                 text not null default 'manual'
+                           check (source in ('manual','csv','stripe_sync')),
+  stripe_invoice_id      text,
+  stripe_subscription_id text,
+  created_at             timestamptz not null default now(),
+  created_by             uuid references auth.users(id)
 );
 
 create index if not exists sales_email_idx            on public.sales (email);
@@ -65,6 +69,9 @@ create index if not exists sales_transaction_date_idx on public.sales (transacti
 create index if not exists sales_expiration_date_idx  on public.sales (expiration_date);
 create index if not exists sales_category_idx         on public.sales (category);
 create unique index if not exists sales_dedup_idx     on public.sales (email, transaction_date, paid_amount);
+create unique index if not exists sales_stripe_invoice_idx
+  on public.sales (stripe_invoice_id)
+  where stripe_invoice_id is not null;
 
 ------------------------------------------------------------
 -- 5. Team members
@@ -112,7 +119,24 @@ create index if not exists mp_year_month_idx on public.member_payouts (year, mon
 create index if not exists mp_paid_at_idx    on public.member_payouts (paid_at desc);
 
 ------------------------------------------------------------
--- 7. Triggers (frozen-row guard, sum<=100 guard)
+-- 6c. Audit log (who-changed-what on team-related tables)
+------------------------------------------------------------
+create table if not exists public.audit_log (
+  id           uuid primary key default uuid_generate_v4(),
+  entity       text not null,
+  action       text not null check (action in ('insert','update','delete')),
+  old_data     jsonb,
+  new_data     jsonb,
+  actor_email  text,
+  actor_id     uuid,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists audit_log_created_at_idx on public.audit_log (created_at desc);
+create index if not exists audit_log_entity_idx     on public.audit_log (entity, created_at desc);
+
+------------------------------------------------------------
+-- 7. Triggers (frozen-row guard, sum<=100 guard, audit log)
 ------------------------------------------------------------
 create or replace function public.tg_block_frozen_allocations() returns trigger
 language plpgsql as $$
@@ -147,9 +171,62 @@ create trigger trg_ma_sum_check
   before insert or update on public.monthly_allocations
   for each row execute function public.tg_alloc_sum_check();
 
+create or replace function public.tg_audit_log() returns trigger
+language plpgsql security definer as $$
+declare
+  v_entity text;
+  v_old    jsonb;
+  v_new    jsonb;
+  v_email  text := (auth.jwt() ->> 'email');
+  v_uid    uuid := auth.uid();
+begin
+  v_entity := case TG_TABLE_NAME
+    when 'monthly_allocations' then 'allocation'
+    when 'team_members'        then 'team_member'
+    when 'member_payouts'      then 'member_payout'
+    else TG_TABLE_NAME
+  end;
+
+  if (TG_OP = 'DELETE') then
+    v_old := to_jsonb(OLD); v_new := null;
+  elsif (TG_OP = 'INSERT') then
+    v_old := null; v_new := to_jsonb(NEW);
+  else
+    v_old := to_jsonb(OLD); v_new := to_jsonb(NEW);
+    if v_old = v_new then return NEW; end if;
+  end if;
+
+  insert into public.audit_log (entity, action, old_data, new_data, actor_email, actor_id)
+  values (v_entity, lower(TG_OP), v_old, v_new, v_email, v_uid);
+
+  return coalesce(NEW, OLD);
+end $$;
+
+drop trigger if exists trg_ma_audit on public.monthly_allocations;
+create trigger trg_ma_audit
+  after insert or update or delete on public.monthly_allocations
+  for each row execute function public.tg_audit_log();
+
+drop trigger if exists trg_tm_audit on public.team_members;
+create trigger trg_tm_audit
+  after insert or update or delete on public.team_members
+  for each row execute function public.tg_audit_log();
+
+drop trigger if exists trg_mp_audit on public.member_payouts;
+create trigger trg_mp_audit
+  after insert or update or delete on public.member_payouts
+  for each row execute function public.tg_audit_log();
+
 ------------------------------------------------------------
 -- 8. Views
 ------------------------------------------------------------
+-- `create or replace view` rejects column renames/reorders, so when the underlying
+-- `sales` schema changes (new columns), re-running the script fails. Drop first
+-- with CASCADE to take down any dependents; everything is recreated below.
+drop view if exists public.v_monthly_revenue        cascade;
+drop view if exists public.v_sales_with_renewal_flag cascade;
+drop view if exists public.v_sales_enriched         cascade;
+
 create or replace view public.v_sales_enriched as
 select
   s.*,
@@ -286,6 +363,7 @@ alter table public.monthly_allocations enable row level security;
 alter table public.member_payouts      enable row level security;
 alter table public.allowed_users       enable row level security;
 alter table public.config              enable row level security;
+alter table public.audit_log           enable row level security;
 
 -- SECURITY DEFINER: must bypass RLS on allowed_users, otherwise the policy that
 -- calls these functions deadlocks (the function can't read the table it's checking).
@@ -311,6 +389,7 @@ drop policy if exists ma_select    on public.monthly_allocations;
 drop policy if exists mp_select    on public.member_payouts;
 drop policy if exists au_select    on public.allowed_users;
 drop policy if exists cfg_select   on public.config;
+drop policy if exists al_select    on public.audit_log;
 drop policy if exists sales_write  on public.sales;
 drop policy if exists tm_write     on public.team_members;
 drop policy if exists ma_write     on public.monthly_allocations;
@@ -324,10 +403,14 @@ create policy ma_select    on public.monthly_allocations for select using (publi
 create policy mp_select    on public.member_payouts     for select using (public.is_allowlisted());
 create policy au_select    on public.allowed_users      for select using (public.is_allowlisted());
 create policy cfg_select   on public.config             for select using (public.is_allowlisted());
+create policy al_select    on public.audit_log          for select using (public.is_allowlisted());
 
-create policy sales_write on public.sales              for all using (public.is_owner()) with check (public.is_owner());
-create policy tm_write    on public.team_members       for all using (public.is_owner()) with check (public.is_owner());
-create policy ma_write    on public.monthly_allocations for all using (public.is_owner()) with check (public.is_owner());
-create policy mp_write    on public.member_payouts     for all using (public.is_owner()) with check (public.is_owner());
-create policy au_write    on public.allowed_users      for all using (public.is_owner()) with check (public.is_owner());
-create policy cfg_write   on public.config             for all using (public.is_owner()) with check (public.is_owner());
+-- Team-allocation page: any allowlisted user can edit allocations + manage team members.
+-- Sales, member payouts, allowlist, and config stay owner-only.
+create policy sales_write on public.sales              for all using (public.is_owner())       with check (public.is_owner());
+create policy tm_write    on public.team_members       for all using (public.is_allowlisted()) with check (public.is_allowlisted());
+create policy ma_write    on public.monthly_allocations for all using (public.is_allowlisted()) with check (public.is_allowlisted());
+create policy mp_write    on public.member_payouts     for all using (public.is_owner())       with check (public.is_owner());
+create policy au_write    on public.allowed_users      for all using (public.is_owner())       with check (public.is_owner());
+create policy cfg_write   on public.config             for all using (public.is_owner())       with check (public.is_owner());
+-- audit_log: no client write policy. Only the SECURITY DEFINER trigger inserts rows.

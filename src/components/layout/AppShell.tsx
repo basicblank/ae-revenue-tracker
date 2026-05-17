@@ -12,6 +12,7 @@ const navItems = [
   { to: '/active', label: 'Active subs' },
   { to: '/team', label: 'Team allocation' },
   { to: '/payouts', label: 'Payouts' },
+  { to: '/history', label: 'History' },
   { to: '/import', label: 'Import', ownerOnly: true },
 ];
 
