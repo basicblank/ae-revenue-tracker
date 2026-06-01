@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CsvDropzone } from '@/components/import/CsvDropzone';
 import { ImportPreview } from '@/components/import/ImportPreview';
 import { ImportRunner } from '@/components/import/ImportRunner';
+import { StripeSyncPanel } from '@/components/import/StripeSyncPanel';
 import type { ImportReport } from '@/components/import/ImportRunner';
 import { autoMapColumns, parseRows, validateColumnMap, dedupKey } from '@/lib/csvParser';
 import type { ColumnMap, ParsedRow, RowError } from '@/lib/csvParser';
@@ -94,9 +95,15 @@ export function ImportPage() {
       <div>
         <h1 className="text-2xl font-bold mb-1">Import</h1>
         <p className="text-sm text-gray-500">
-          Bulk-load historical sales from CSV. Dates must be MM/DD/YYYY. Active / Expires in / Status
-          Check columns are ignored — they're recomputed.
+          Stripe data syncs automatically. Use the CSV importer below for NowPayments or one-off
+          historical loads — dates must be MM/DD/YYYY.
         </p>
+      </div>
+
+      <StripeSyncPanel />
+
+      <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
+        <h2 className="text-base font-semibold mb-2">CSV import</h2>
       </div>
 
       {!file && <CsvDropzone onParsed={onParsed} />}

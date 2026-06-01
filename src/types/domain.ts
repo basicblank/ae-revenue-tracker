@@ -1,5 +1,6 @@
 export type SaleCategory = 'stripe' | 'nowpayments';
 export type SalePlan = '1m' | '3m';
+export type SaleSource = 'manual' | 'csv' | 'stripe_sync';
 
 export type Sale = {
   id: string;
@@ -10,7 +11,16 @@ export type Sale = {
   transaction_date: string;
   expiration_date: string;
   notes: string | null;
+  source: SaleSource;
+  stripe_invoice_id: string | null;
+  stripe_subscription_id: string | null;
   created_at: string;
+};
+
+export const SOURCE_LABEL: Record<SaleSource, string> = {
+  manual: 'Manual',
+  csv: 'CSV',
+  stripe_sync: 'Synced',
 };
 
 export type SaleEnriched = Sale & {

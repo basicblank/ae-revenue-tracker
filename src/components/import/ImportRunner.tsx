@@ -45,6 +45,7 @@ export function ImportRunner({ rows, duplicateKeys, onDone }: Props) {
         paid_amount: r.paid_amount,
         transaction_date: r.transaction_date,
         notes: r.notes,
+        source: 'csv' as const,
       }));
       const { data, error } = await supabase
         .from('sales')

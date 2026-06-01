@@ -119,6 +119,21 @@ create index if not exists mp_year_month_idx on public.member_payouts (year, mon
 create index if not exists mp_paid_at_idx    on public.member_payouts (paid_at desc);
 
 ------------------------------------------------------------
+-- 6d. Sync state (compound cursor for external data pulls)
+------------------------------------------------------------
+create table if not exists public.sync_state (
+  key                text primary key,
+  latest_paid_at     timestamptz,
+  latest_invoice_id  text,
+  last_sync_at       timestamptz,
+  last_sync_status   text,
+  last_sync_result   jsonb,
+  updated_at         timestamptz not null default now()
+);
+
+insert into public.sync_state (key) values ('stripe_revenue') on conflict do nothing;
+
+------------------------------------------------------------
 -- 6c. Audit log (who-changed-what on team-related tables)
 ------------------------------------------------------------
 create table if not exists public.audit_log (
@@ -364,6 +379,7 @@ alter table public.member_payouts      enable row level security;
 alter table public.allowed_users       enable row level security;
 alter table public.config              enable row level security;
 alter table public.audit_log           enable row level security;
+alter table public.sync_state          enable row level security;
 
 -- SECURITY DEFINER: must bypass RLS on allowed_users, otherwise the policy that
 -- calls these functions deadlocks (the function can't read the table it's checking).
@@ -390,6 +406,7 @@ drop policy if exists mp_select    on public.member_payouts;
 drop policy if exists au_select    on public.allowed_users;
 drop policy if exists cfg_select   on public.config;
 drop policy if exists al_select    on public.audit_log;
+drop policy if exists ss_select    on public.sync_state;
 drop policy if exists sales_write  on public.sales;
 drop policy if exists tm_write     on public.team_members;
 drop policy if exists ma_write     on public.monthly_allocations;
@@ -404,6 +421,7 @@ create policy mp_select    on public.member_payouts     for select using (public
 create policy au_select    on public.allowed_users      for select using (public.is_allowlisted());
 create policy cfg_select   on public.config             for select using (public.is_allowlisted());
 create policy al_select    on public.audit_log          for select using (public.is_allowlisted());
+create policy ss_select    on public.sync_state         for select using (public.is_allowlisted());
 
 -- Team-allocation page: any allowlisted user can edit allocations + manage team members.
 -- Sales, member payouts, allowlist, and config stay owner-only.
@@ -414,3 +432,4 @@ create policy mp_write    on public.member_payouts     for all using (public.is_
 create policy au_write    on public.allowed_users      for all using (public.is_owner())       with check (public.is_owner());
 create policy cfg_write   on public.config             for all using (public.is_owner())       with check (public.is_owner());
 -- audit_log: no client write policy. Only the SECURITY DEFINER trigger inserts rows.
+-- sync_state: no client write policy. Only the stripe-sync Edge Function (service role) writes.

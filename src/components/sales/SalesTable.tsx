@@ -3,8 +3,13 @@ import { useSales, useDeleteSale } from '@/data/sales';
 import { formatDate, formatUSD } from '@/lib/format';
 import { useAuth } from '@/auth/AuthProvider';
 import { env } from '@/lib/env';
-import type { SaleCategory, SalePlan } from '@/types/domain';
-import { PLAN_LABEL } from '@/types/domain';
+import type { SaleCategory, SalePlan, SaleSource } from '@/types/domain';
+import { PLAN_LABEL, SOURCE_LABEL } from '@/types/domain';
+
+const SOURCE_BADGE_CLASS: Record<Exclude<SaleSource, 'manual'>, string> = {
+  csv: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
+  stripe_sync: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+};
 
 type StatusFilter = 'all' | 'active' | 'expired';
 
@@ -104,7 +109,19 @@ export function SalesTable() {
             ) : (
               filtered.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-3 py-2">{s.email}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span>{s.email}</span>
+                      {s.source !== 'manual' && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${SOURCE_BADGE_CLASS[s.source]}`}
+                          title={`Imported via ${SOURCE_LABEL[s.source]}`}
+                        >
+                          {SOURCE_LABEL[s.source]}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-3 py-2 capitalize">{s.category}</td>
                   <td className="px-3 py-2">{PLAN_LABEL[s.plan]}</td>
                   <td className="px-3 py-2 text-right">{formatUSD(s.paid_amount)}</td>

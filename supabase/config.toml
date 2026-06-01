@@ -1,0 +1,10 @@
+# stripe-sync handles its own authorization (verifies the caller is the service-role
+# key OR an allowlisted owner). The platform JWT check is disabled so browser preflight
+# OPTIONS requests — which can't carry an Authorization header — aren't rejected.
+[functions.stripe-sync]
+verify_jwt = false
+
+# roll-allocations is only invoked by the Supabase cron runner, which sends the
+# service-role key. Keep platform JWT verification on for defense in depth.
+[functions.roll-allocations]
+verify_jwt = true
